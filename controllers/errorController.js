@@ -1,3 +1,10 @@
+const AppError = require('../util/AppError');
+
+const handleCastErrorDB = err => {
+  const message = `Invalid ${err.path}: ${err.value}.`;
+  return new AppError(message, 400);
+};
+
 module.exports = (err, req, res, next)=>{
     console.log(err.stack);
     err.statusCode = err.statusCode ||500;
@@ -6,6 +13,8 @@ module.exports = (err, req, res, next)=>{
 
    if ( process.env.NODE_ENV === 'production'){
     // in operational send messages to clients
+    let error ={...err}
+    if (error.name==='CastError') error =handleCastErrorDB(error);
     if(err.isOperation){
            res.status(err.statusCode).json({
         status: err.status,
@@ -25,7 +34,7 @@ module.exports = (err, req, res, next)=>{
     }
 
     }
-    else if ( process.env.NODE_ENV === 'development'){
+    else if ( process.env.NODE_ENV === 'devolopment'){
             res.status(err.statusCode).json({
       status: err.status,
       message: err.message,
